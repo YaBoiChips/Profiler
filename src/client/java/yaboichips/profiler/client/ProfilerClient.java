@@ -1,19 +1,19 @@
 package yaboichips.profiler.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import org.spongepowered.include.com.google.gson.Gson;
 import org.spongepowered.include.com.google.gson.GsonBuilder;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -41,14 +41,11 @@ public class ProfilerClient implements ClientModInitializer {
         }
 
         int buttonX = (optionsScreen.width / Minecraft.getInstance().getWindow().getGuiScaledWidth());
-        int buttonX2 = ((optionsScreen.width - 22) / Minecraft.getInstance().getWindow().getGuiScaledWidth());
         int buttonY = (optionsScreen.height / Minecraft.getInstance().getWindow().getGuiScaledHeight());
 
-        GridLayout gridLayout = new GridLayout();
-        gridLayout.defaultCellSetting().paddingHorizontal(4).paddingBottom(4).alignHorizontallyCenter();
-        GridLayout.RowHelper rowHelper = gridLayout.createRowHelper(2);
         // First Button: Load Settings from profile.json
-        Button loadSettingsButton = Button.builder(
+        Button loadSettingsButton = new Button(
+                buttonX, buttonY, 20, 20,
                 Component.literal("↓"), // Button text
                 button -> {
                     if (PROFILE_FILE.exists()) {
@@ -56,7 +53,7 @@ public class ProfilerClient implements ClientModInitializer {
                         try (FileReader reader = new FileReader(PROFILE_FILE)) {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
-                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                     Component.literal("Settings Loaded"),
                                     Component.literal("Your settings have been loaded from profiler.json.")
                             ));
@@ -65,17 +62,18 @@ public class ProfilerClient implements ClientModInitializer {
                             e.printStackTrace();
                         }
                     } else {
-                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                 Component.literal("File Not Found"),
                                 Component.literal("profiler.json was not found on your computer, try saving first!")
                         ));
                     }
                     optionsScreen.onClose();
                 }
-        ).size(20, 20).pos(buttonX, buttonY).tooltip(Tooltip.create(Component.literal("Retrieve Minecraft Settings"))).build();
+        );
 
         // Second Button: Save Settings to profile.json
-        Button saveSettingsButton = Button.builder(
+        Button saveSettingsButton = new Button(
+                optionsScreen.width - 21, buttonY, 20,20,
                 // Button height
                 Component.literal("↑"), // Button text
                 button -> {
@@ -92,8 +90,6 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.entityShadows().get(),
                             gameOptions.entityDistanceScaling().get(),
                             gameOptions.fovEffectScale().get(),
-                            gameOptions.glintSpeed().get(),
-                            gameOptions.getMenuBackgroundBlurriness(),
                             gameOptions.showAutosaveIndicator().get(),
                             gameOptions.graphicsMode().get().getId(),
                             gameOptions.renderDistance().get(),
@@ -107,17 +103,16 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.toggleCrouch().get(),
                             gameOptions.toggleSprint().get(),
                             gameOptions.autoJump().get(),
-                            gameOptions.operatorItemsTab().get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.MASTER).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.MUSIC).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.RECORDS).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.WEATHER).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.BLOCKS).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.HOSTILE).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.NEUTRAL).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.PLAYERS).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.AMBIENT).get(),
-                            gameOptions.soundSourceVolumes.get(SoundSource.VOICE).get(),
+                            gameOptions.sourceVolumes.get(SoundSource.MASTER),
+                            gameOptions.sourceVolumes.get(SoundSource.MUSIC),
+                            gameOptions.sourceVolumes.get(SoundSource.RECORDS),
+                            gameOptions.sourceVolumes.get(SoundSource.WEATHER),
+                            gameOptions.sourceVolumes.get(SoundSource.BLOCKS),
+                            gameOptions.sourceVolumes.get(SoundSource.HOSTILE),
+                            gameOptions.sourceVolumes.get(SoundSource.NEUTRAL),
+                            gameOptions.sourceVolumes.get(SoundSource.PLAYERS),
+                            gameOptions.sourceVolumes.get(SoundSource.AMBIENT),
+                            gameOptions.sourceVolumes.get(SoundSource.VOICE),
                             gameOptions.showSubtitles().get(),
                             gameOptions.keyUp.key.getValue(),
                             gameOptions.keyLeft.key.getValue(),
@@ -140,7 +135,7 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.keySmoothCamera.key.getValue(),
                             gameOptions.keyAdvancements.key.getValue()
                     );
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                             Component.literal("Settings Saved"),
                             Component.literal("Your settings have been saved.")
                     ));
@@ -153,8 +148,7 @@ public class ProfilerClient implements ClientModInitializer {
                     optionsScreen.onClose();
 
                 }
-        ).size(20, 20).pos(optionsScreen.width - 21, buttonY).tooltip(Tooltip.create(Component.literal("Set New Default Settings"))).build();
-
+        );
         // Add both buttons to the options screen
         optionsScreen.addRenderableWidget(loadSettingsButton);
         optionsScreen.addRenderableWidget(saveSettingsButton);
@@ -199,20 +193,19 @@ public class ProfilerClient implements ClientModInitializer {
         gameOptions.toggleCrouch().set(profile.toggleCrouch);
         gameOptions.toggleSprint().set(profile.toggleSprint);
         gameOptions.autoJump().set(profile.autoJump);
-        gameOptions.operatorItemsTab().set(profile.opTab);
 
 
         //volume
-        gameOptions.soundSourceVolumes.get(SoundSource.MASTER).set(profile.masterVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.MUSIC).set(profile.musicVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.RECORDS).set(profile.recordVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.WEATHER).set(profile.weatherVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.BLOCKS).set(profile.blockVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.HOSTILE).set(profile.hostileVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.NEUTRAL).set(profile.neutralVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.PLAYERS).set(profile.playerVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.AMBIENT).set(profile.ambientVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.VOICE).set(profile.voiceVolume);
+        gameOptions.sourceVolumes.put(SoundSource.MASTER, (float)profile.masterVolume);
+        gameOptions.sourceVolumes.put(SoundSource.MUSIC, (float)profile.musicVolume);
+        gameOptions.sourceVolumes.put(SoundSource.RECORDS, (float)profile.recordVolume);
+        gameOptions.sourceVolumes.put(SoundSource.WEATHER, (float)profile.weatherVolume);
+        gameOptions.sourceVolumes.put(SoundSource.BLOCKS, (float)profile.blockVolume);
+        gameOptions.sourceVolumes.put(SoundSource.HOSTILE, (float)profile.hostileVolume);
+        gameOptions.sourceVolumes.put(SoundSource.NEUTRAL, (float)profile.neutralVolume);
+        gameOptions.sourceVolumes.put(SoundSource.PLAYERS, (float)profile.playerVolume);
+        gameOptions.sourceVolumes.put(SoundSource.AMBIENT, (float)profile.ambientVolume);
+        gameOptions.sourceVolumes.put(SoundSource.VOICE, (float)profile.voiceVolume);
 
         //video settings
         gameOptions.graphicsMode().set(GraphicsStatus.byId(profile.graphicsMode));
@@ -228,9 +221,8 @@ public class ProfilerClient implements ClientModInitializer {
         gameOptions.entityShadows().set(profile.entityShadows);
         gameOptions.entityDistanceScaling().set(profile.entityDistance);
         gameOptions.fovEffectScale().set(profile.fovEffect);
-        gameOptions.glintSpeed().set(profile.glintSpeed);
-        gameOptions.menuBackgroundBlurriness().set(profile.blur);
         gameOptions.showAutosaveIndicator().set(profile.autosave);
+        Minecraft.getInstance().resizeDisplay();
     }
 
     public static CloudStatus getCloudByID(int id) {
@@ -257,7 +249,6 @@ public class ProfilerClient implements ClientModInitializer {
         boolean toggleCrouch;
         boolean toggleSprint;
         boolean autoJump;
-        boolean opTab;
         boolean touchscreen;
         boolean invertMouse;
         boolean discreteMouse;
@@ -269,8 +260,6 @@ public class ProfilerClient implements ClientModInitializer {
         boolean entityShadows;
         double entityDistance;
         double fovEffect;
-        double glintSpeed;
-        int blur;
         boolean autosave;
         int framerateLimit;
         int particles;
@@ -304,9 +293,9 @@ public class ProfilerClient implements ClientModInitializer {
         public int keyAdvancements;
 
         public SettingsProfile(int fov, boolean vsync, int guiScale, double gamma, int particles, int framerateLimit, boolean bobView, int cloudStatus,
-                               boolean entityShadows, double entityDistance, double fovEffect, double glintSpeed, int blur, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
+                               boolean entityShadows, double entityDistance, double fovEffect, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
                                double mouseSensitivity, double scrollSensitivity, boolean touchscreen, boolean invertMouse, boolean discreteMouse, boolean rawMouseInput,
-                               boolean toggleCrouch, boolean toggleSprint, boolean autoJump, boolean opTab,
+                               boolean toggleCrouch, boolean toggleSprint, boolean autoJump,
                                double masterVolume, double musicVolume, double recordVolume, double weatherVolume, double blockVolume, double hostileVolume, double neutralVolume, double playerVolume, double ambientVolume, double voiceVolume, boolean subtitles,
                                int keyUp, int keyLeft, int keyDown, int keyRight, int keyJump,
                                int keySneak, int keySprint, int keyInventory, int keySwapHands,
@@ -325,8 +314,6 @@ public class ProfilerClient implements ClientModInitializer {
             this.entityShadows = entityShadows;
             this.entityDistance = entityDistance;
             this.fovEffect = fovEffect;
-            this.glintSpeed = glintSpeed;
-            this.blur = blur;
             this.autosave = autosave;
             this.masterVolume = masterVolume;
             this.graphicsMode = graphicsMode;
@@ -341,7 +328,6 @@ public class ProfilerClient implements ClientModInitializer {
             this.toggleCrouch = toggleCrouch;
             this.toggleSprint = toggleSprint;
             this.autoJump = autoJump;
-            this.opTab = opTab;
             this.musicVolume = musicVolume;
             this.recordVolume = recordVolume;
             this.weatherVolume = weatherVolume;
