@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "profiler",
+  "version": "${version}",
+  "accessWidener": "profiler.accesswidener",
+  "name": "Profiler",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/profiler/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "yaboichips.profiler.client.ProfilerClient"
+    ],
+    "main": [
+      "yaboichips.profiler.Profiler"
+    ]
+  },
+  "mixins": [
+    "profiler.mixins.json",
+    {
+      "config": "profiler.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": ">=${minecraft_version}"
+  }
+}
