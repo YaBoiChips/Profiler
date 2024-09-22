@@ -50,7 +50,7 @@ public class ProfilerClient implements ClientModInitializer {
                         try (FileReader reader = new FileReader(PROFILE_FILE)) {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
-                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
+                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
                                     Component.literal("Settings Loaded"),
                                     Component.literal("Your settings have been loaded from profiler.json.")
                             ));
@@ -59,7 +59,7 @@ public class ProfilerClient implements ClientModInitializer {
                             e.printStackTrace();
                         }
                     } else {
-                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
+                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
                                 Component.literal("File Not Found"),
                                 Component.literal("profiler.json was not found on your computer, try saving first!")
                         ));
@@ -133,7 +133,7 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.keySmoothCamera.key.getValue(),
                             gameOptions.keyAdvancements.key.getValue()
                     );
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
                             Component.literal("Settings Saved"),
                             Component.literal("Your settings have been saved.")
                     ));
