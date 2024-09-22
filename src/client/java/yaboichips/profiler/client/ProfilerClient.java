@@ -7,8 +7,7 @@ import net.minecraft.client.*;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import org.spongepowered.include.com.google.gson.Gson;
@@ -41,12 +40,8 @@ public class ProfilerClient implements ClientModInitializer {
         }
 
         int buttonX = (optionsScreen.width / Minecraft.getInstance().getWindow().getGuiScaledWidth());
-        int buttonX2 = ((optionsScreen.width - 22) / Minecraft.getInstance().getWindow().getGuiScaledWidth());
         int buttonY = (optionsScreen.height / Minecraft.getInstance().getWindow().getGuiScaledHeight());
 
-        GridLayout gridLayout = new GridLayout();
-        gridLayout.defaultCellSetting().paddingHorizontal(4).paddingBottom(4).alignHorizontallyCenter();
-        GridLayout.RowHelper rowHelper = gridLayout.createRowHelper(2);
         // First Button: Load Settings from profile.json
         Button loadSettingsButton = Button.builder(
                 Component.literal("↓"), // Button text
@@ -56,7 +51,7 @@ public class ProfilerClient implements ClientModInitializer {
                         try (FileReader reader = new FileReader(PROFILE_FILE)) {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
-                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                     Component.literal("Settings Loaded"),
                                     Component.literal("Your settings have been loaded from profiler.json.")
                             ));
@@ -65,7 +60,7 @@ public class ProfilerClient implements ClientModInitializer {
                             e.printStackTrace();
                         }
                     } else {
-                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                 Component.literal("File Not Found"),
                                 Component.literal("profiler.json was not found on your computer, try saving first!")
                         ));
@@ -93,7 +88,6 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.entityDistanceScaling().get(),
                             gameOptions.fovEffectScale().get(),
                             gameOptions.glintSpeed().get(),
-                            gameOptions.getMenuBackgroundBlurriness(),
                             gameOptions.showAutosaveIndicator().get(),
                             gameOptions.graphicsMode().get().getId(),
                             gameOptions.renderDistance().get(),
@@ -140,7 +134,7 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.keySmoothCamera.key.getValue(),
                             gameOptions.keyAdvancements.key.getValue()
                     );
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                             Component.literal("Settings Saved"),
                             Component.literal("Your settings have been saved.")
                     ));
@@ -229,8 +223,9 @@ public class ProfilerClient implements ClientModInitializer {
         gameOptions.entityDistanceScaling().set(profile.entityDistance);
         gameOptions.fovEffectScale().set(profile.fovEffect);
         gameOptions.glintSpeed().set(profile.glintSpeed);
-        gameOptions.menuBackgroundBlurriness().set(profile.blur);
         gameOptions.showAutosaveIndicator().set(profile.autosave);
+
+        Minecraft.getInstance().resizeDisplay();
     }
 
     public static CloudStatus getCloudByID(int id) {
@@ -270,7 +265,6 @@ public class ProfilerClient implements ClientModInitializer {
         double entityDistance;
         double fovEffect;
         double glintSpeed;
-        int blur;
         boolean autosave;
         int framerateLimit;
         int particles;
@@ -304,7 +298,7 @@ public class ProfilerClient implements ClientModInitializer {
         public int keyAdvancements;
 
         public SettingsProfile(int fov, boolean vsync, int guiScale, double gamma, int particles, int framerateLimit, boolean bobView, int cloudStatus,
-                               boolean entityShadows, double entityDistance, double fovEffect, double glintSpeed, int blur, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
+                               boolean entityShadows, double entityDistance, double fovEffect, double glintSpeed, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
                                double mouseSensitivity, double scrollSensitivity, boolean touchscreen, boolean invertMouse, boolean discreteMouse, boolean rawMouseInput,
                                boolean toggleCrouch, boolean toggleSprint, boolean autoJump, boolean opTab,
                                double masterVolume, double musicVolume, double recordVolume, double weatherVolume, double blockVolume, double hostileVolume, double neutralVolume, double playerVolume, double ambientVolume, double voiceVolume, boolean subtitles,
@@ -326,7 +320,6 @@ public class ProfilerClient implements ClientModInitializer {
             this.entityDistance = entityDistance;
             this.fovEffect = fovEffect;
             this.glintSpeed = glintSpeed;
-            this.blur = blur;
             this.autosave = autosave;
             this.masterVolume = masterVolume;
             this.graphicsMode = graphicsMode;
