@@ -87,7 +87,7 @@ public class ProfilerForge {
                         try (FileReader reader = new FileReader(PROFILE_FILE)) {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
-                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                     Component.literal("Settings Loaded"),
                                     Component.literal("Your settings have been loaded from profiler.json.")
                             ));
@@ -96,7 +96,7 @@ public class ProfilerForge {
                             e.printStackTrace();
                         }
                     } else {
-                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                 Component.literal("File Not Found"),
                                 Component.literal("profiler.json was not found on your computer, try saving first!")
                         ));
@@ -170,7 +170,7 @@ public class ProfilerForge {
                             gameOptions.keySmoothCamera.getKey().getValue(),
                             gameOptions.keyAdvancements.getKey().getValue()
                     );
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                             Component.literal("Settings Saved"),
                             Component.literal("Your settings have been saved.")
                     ));
@@ -260,6 +260,8 @@ public class ProfilerForge {
         gameOptions.fovEffectScale().set(profile.fovEffect);
         gameOptions.glintSpeed().set(profile.glintSpeed);
         gameOptions.showAutosaveIndicator().set(profile.autosave);
+
+        Minecraft.getInstance().resizeDisplay();
     }
 
     public static CloudStatus getCloudByID(int id) {
