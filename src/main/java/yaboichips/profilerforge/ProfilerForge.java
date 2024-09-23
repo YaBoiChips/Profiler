@@ -9,36 +9,20 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -140,7 +124,6 @@ public class ProfilerForge {
                             gameOptions.entityDistanceScaling().get(),
                             gameOptions.fovEffectScale().get(),
                             gameOptions.glintSpeed().get(),
-                            gameOptions.getMenuBackgroundBlurriness(),
                             gameOptions.showAutosaveIndicator().get(),
                             gameOptions.graphicsMode().get().getId(),
                             gameOptions.renderDistance().get(),
@@ -276,7 +259,6 @@ public class ProfilerForge {
         gameOptions.entityDistanceScaling().set(profile.entityDistance);
         gameOptions.fovEffectScale().set(profile.fovEffect);
         gameOptions.glintSpeed().set(profile.glintSpeed);
-        gameOptions.menuBackgroundBlurriness().set(profile.blur);
         gameOptions.showAutosaveIndicator().set(profile.autosave);
     }
 
@@ -317,7 +299,6 @@ public class ProfilerForge {
         double entityDistance;
         double fovEffect;
         double glintSpeed;
-        int blur;
         boolean autosave;
         int framerateLimit;
         int particles;
@@ -351,7 +332,7 @@ public class ProfilerForge {
         public int keyAdvancements;
 
         public SettingsProfile(int fov, boolean vsync, int guiScale, double gamma, int particles, int framerateLimit, boolean bobView, int cloudStatus,
-                               boolean entityShadows, double entityDistance, double fovEffect, double glintSpeed, int blur, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
+                               boolean entityShadows, double entityDistance, double fovEffect, double glintSpeed, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
                                double mouseSensitivity, double scrollSensitivity, boolean touchscreen, boolean invertMouse, boolean discreteMouse, boolean rawMouseInput,
                                boolean toggleCrouch, boolean toggleSprint, boolean autoJump, boolean opTab,
                                double masterVolume, double musicVolume, double recordVolume, double weatherVolume, double blockVolume, double hostileVolume, double neutralVolume, double playerVolume, double ambientVolume, double voiceVolume, boolean subtitles,
@@ -373,7 +354,6 @@ public class ProfilerForge {
             this.entityDistance = entityDistance;
             this.fovEffect = fovEffect;
             this.glintSpeed = glintSpeed;
-            this.blur = blur;
             this.autosave = autosave;
             this.masterVolume = masterVolume;
             this.graphicsMode = graphicsMode;
