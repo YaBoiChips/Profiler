@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "yaboichips.profilerforge.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "profilerforge.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
