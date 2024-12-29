@@ -6,39 +6,20 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.gui.layouts.GridLayout;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.client.gui.screens.OptionsScreen;
+import net.minecraft.client.gui.screens.OptionsSubScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -53,18 +34,16 @@ public class ProfilerForge {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "profilerforge";
     // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File PROFILER_DIR = new File(System.getenv("APPDATA") + "/.profiler");
-    private static final File PROFILE_FILE = new File(PROFILER_DIR, "profile.json");
+    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static final File PROFILER_DIR = new File(System.getenv("APPDATA") + "/.profiler");
+    public static final File PROFILE_FILE = new File(PROFILER_DIR, "profile.json");
 
 
     public ProfilerForge() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::onClientSetup);
-
-        modEventBus.addListener(this::commonSetup);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -75,11 +54,11 @@ public class ProfilerForge {
             MinecraftForge.EVENT_BUS.addListener(this::doScreenInit);
         }
     }
-    @SubscribeEvent
-    public void doScreenInit(ScreenEvent.Init.Pre event){
-        if (event.getScreen() instanceof OptionsScreen optionsScreen){
-            addButtons(optionsScreen, Minecraft.getInstance().options);
 
+    @SubscribeEvent
+    public void doScreenInit(ScreenEvent event) {
+        if (event.getScreen() instanceof OptionsScreen optionsScreen) {
+            addButtons(optionsScreen, Minecraft.getInstance().options);
         }
     }
 
@@ -91,11 +70,9 @@ public class ProfilerForge {
         int buttonX = (optionsScreen.width / Minecraft.getInstance().getWindow().getGuiScaledWidth());
         int buttonY = (optionsScreen.height / Minecraft.getInstance().getWindow().getGuiScaledHeight());
 
-        GridLayout gridLayout = new GridLayout();
-        gridLayout.defaultCellSetting().paddingHorizontal(4).paddingBottom(4).alignHorizontallyCenter();
-        GridLayout.RowHelper rowHelper = gridLayout.createRowHelper(2);
         // First Button: Load Settings from profile.json
-        Button loadSettingsButton = Button.builder(
+        Button loadSettingsButton = new Button(
+                buttonX, buttonY, 20, 20,
                 Component.literal("↓"), // Button text
                 button -> {
                     if (PROFILE_FILE.exists()) {
@@ -103,7 +80,7 @@ public class ProfilerForge {
                         try (FileReader reader = new FileReader(PROFILE_FILE)) {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
-                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                     Component.literal("Settings Loaded"),
                                     Component.literal("Your settings have been loaded from profiler.json.")
                             ));
@@ -112,17 +89,18 @@ public class ProfilerForge {
                             e.printStackTrace();
                         }
                     } else {
-                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                                 Component.literal("File Not Found"),
                                 Component.literal("profiler.json was not found on your computer, try saving first!")
                         ));
                     }
                     optionsScreen.onClose();
                 }
-        ).size(20, 20).pos(buttonX, buttonY).tooltip(Tooltip.create(Component.literal("Retrieve Minecraft Settings"))).build();
+        );
 
         // Second Button: Save Settings to profile.json
-        Button saveSettingsButton = Button.builder(
+        Button saveSettingsButton = new Button(
+                optionsScreen.width - 21, buttonY, 20, 20,
                 // Button height
                 Component.literal("↑"), // Button text
                 button -> {
@@ -139,8 +117,6 @@ public class ProfilerForge {
                             gameOptions.entityShadows().get(),
                             gameOptions.entityDistanceScaling().get(),
                             gameOptions.fovEffectScale().get(),
-                            gameOptions.glintSpeed().get(),
-                            gameOptions.getMenuBackgroundBlurriness(),
                             gameOptions.showAutosaveIndicator().get(),
                             gameOptions.graphicsMode().get().getId(),
                             gameOptions.renderDistance().get(),
@@ -154,7 +130,6 @@ public class ProfilerForge {
                             gameOptions.toggleCrouch().get(),
                             gameOptions.toggleSprint().get(),
                             gameOptions.autoJump().get(),
-                            gameOptions.operatorItemsTab().get(),
                             gameOptions.getSoundSourceVolume(SoundSource.MASTER),
                             gameOptions.getSoundSourceVolume(SoundSource.MUSIC),
                             gameOptions.getSoundSourceVolume(SoundSource.RECORDS),
@@ -187,7 +162,7 @@ public class ProfilerForge {
                             gameOptions.keySmoothCamera.getKey().getValue(),
                             gameOptions.keyAdvancements.getKey().getValue()
                     );
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
+                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
                             Component.literal("Settings Saved"),
                             Component.literal("Your settings have been saved.")
                     ));
@@ -200,7 +175,7 @@ public class ProfilerForge {
                     optionsScreen.onClose();
 
                 }
-        ).size(20, 20).pos(optionsScreen.width - 21, buttonY).tooltip(Tooltip.create(Component.literal("Set New Default Settings"))).build();
+        );
 
         // Add both buttons to the options screen
         optionsScreen.addRenderableWidget(loadSettingsButton);
@@ -246,20 +221,19 @@ public class ProfilerForge {
         gameOptions.toggleCrouch().set(profile.toggleCrouch);
         gameOptions.toggleSprint().set(profile.toggleSprint);
         gameOptions.autoJump().set(profile.autoJump);
-        gameOptions.operatorItemsTab().set(profile.opTab);
 
 
         //volume
-        gameOptions.soundSourceVolumes.get(SoundSource.MASTER).set(profile.masterVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.MUSIC).set(profile.musicVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.RECORDS).set(profile.recordVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.WEATHER).set(profile.weatherVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.BLOCKS).set(profile.blockVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.HOSTILE).set(profile.hostileVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.NEUTRAL).set(profile.neutralVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.PLAYERS).set(profile.playerVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.AMBIENT).set(profile.ambientVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.VOICE).set(profile.voiceVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.MASTER, (float) profile.masterVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.MUSIC, (float) profile.musicVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.RECORDS, (float) profile.recordVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.WEATHER, (float) profile.weatherVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.BLOCKS, (float) profile.blockVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.HOSTILE, (float) profile.hostileVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.NEUTRAL, (float) profile.neutralVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.PLAYERS, (float) profile.playerVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.AMBIENT, (float) profile.ambientVolume);
+        gameOptions.setSoundCategoryVolume(SoundSource.VOICE, (float) profile.voiceVolume);
 
         //video settings
         gameOptions.graphicsMode().set(GraphicsStatus.byId(profile.graphicsMode));
@@ -275,8 +249,6 @@ public class ProfilerForge {
         gameOptions.entityShadows().set(profile.entityShadows);
         gameOptions.entityDistanceScaling().set(profile.entityDistance);
         gameOptions.fovEffectScale().set(profile.fovEffect);
-        gameOptions.glintSpeed().set(profile.glintSpeed);
-        gameOptions.menuBackgroundBlurriness().set(profile.blur);
         gameOptions.showAutosaveIndicator().set(profile.autosave);
     }
 
@@ -290,45 +262,42 @@ public class ProfilerForge {
     }
 
     // Inner class to represent the player's settings in JSON
-    private static class SettingsProfile {
-        boolean subtitles;
-        double musicVolume;
-        double recordVolume;
-        double weatherVolume;
-        double blockVolume;
-        double hostileVolume;
-        double neutralVolume;
-        double playerVolume;
-        double ambientVolume;
-        double voiceVolume;
-        boolean toggleCrouch;
-        boolean toggleSprint;
-        boolean autoJump;
-        boolean opTab;
-        boolean touchscreen;
-        boolean invertMouse;
-        boolean discreteMouse;
-        boolean rawMouseInput;
-        double scrollSensitivity;
-        double mouseSensitivity;
-        boolean bobView;
-        int cloudStatus;
-        boolean entityShadows;
-        double entityDistance;
-        double fovEffect;
-        double glintSpeed;
-        int blur;
-        boolean autosave;
-        int framerateLimit;
-        int particles;
-        double brightness;
-        int fov;
-        boolean vsync;
-        int guiScale;
-        double masterVolume;
-        int graphicsMode;
-        int viewDistance;
-        boolean fullscreen;
+    public static class SettingsProfile {
+        public boolean subtitles;
+        public double musicVolume;
+        public double recordVolume;
+        public double weatherVolume;
+        public double blockVolume;
+        public double hostileVolume;
+        public double neutralVolume;
+        public double playerVolume;
+        public double ambientVolume;
+        public double voiceVolume;
+        public boolean toggleCrouch;
+        public boolean toggleSprint;
+        public boolean autoJump;
+        public boolean touchscreen;
+        public boolean invertMouse;
+        public boolean discreteMouse;
+        public boolean rawMouseInput;
+        public double scrollSensitivity;
+        public double mouseSensitivity;
+        public boolean bobView;
+        public int cloudStatus;
+        public boolean entityShadows;
+        public double entityDistance;
+        public double fovEffect;
+        public boolean autosave;
+        public int framerateLimit;
+        public int particles;
+        public double brightness;
+        public int fov;
+        public boolean vsync;
+        public int guiScale;
+        public double masterVolume;
+        public int graphicsMode;
+        public int viewDistance;
+        public boolean fullscreen;
         public int keyUp;
         public int keyLeft;
         public int keyDown;
@@ -351,9 +320,9 @@ public class ProfilerForge {
         public int keyAdvancements;
 
         public SettingsProfile(int fov, boolean vsync, int guiScale, double gamma, int particles, int framerateLimit, boolean bobView, int cloudStatus,
-                               boolean entityShadows, double entityDistance, double fovEffect, double glintSpeed, int blur, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
+                               boolean entityShadows, double entityDistance, double fovEffect, boolean autosave, int graphicsMode, int viewDistance, boolean fullscreen,
                                double mouseSensitivity, double scrollSensitivity, boolean touchscreen, boolean invertMouse, boolean discreteMouse, boolean rawMouseInput,
-                               boolean toggleCrouch, boolean toggleSprint, boolean autoJump, boolean opTab,
+                               boolean toggleCrouch, boolean toggleSprint, boolean autoJump,
                                double masterVolume, double musicVolume, double recordVolume, double weatherVolume, double blockVolume, double hostileVolume, double neutralVolume, double playerVolume, double ambientVolume, double voiceVolume, boolean subtitles,
                                int keyUp, int keyLeft, int keyDown, int keyRight, int keyJump,
                                int keySneak, int keySprint, int keyInventory, int keySwapHands,
@@ -372,8 +341,6 @@ public class ProfilerForge {
             this.entityShadows = entityShadows;
             this.entityDistance = entityDistance;
             this.fovEffect = fovEffect;
-            this.glintSpeed = glintSpeed;
-            this.blur = blur;
             this.autosave = autosave;
             this.masterVolume = masterVolume;
             this.graphicsMode = graphicsMode;
@@ -388,7 +355,6 @@ public class ProfilerForge {
             this.toggleCrouch = toggleCrouch;
             this.toggleSprint = toggleSprint;
             this.autoJump = autoJump;
-            this.opTab = opTab;
             this.musicVolume = musicVolume;
             this.recordVolume = recordVolume;
             this.weatherVolume = weatherVolume;
@@ -419,24 +385,6 @@ public class ProfilerForge {
             this.keyTogglePerspective = keyTogglePerspective;
             this.keySmoothCamera = keySmoothCamera;
             this.keyAdvancements = keyAdvancements;
-        }
-    }
-    private void clientSetup(final FMLClientSetupEvent event) {
-    }
-    private void commonSetup(final FMLCommonSetupEvent event) {
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-    }
-
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents {
-
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event) {
         }
     }
 }
