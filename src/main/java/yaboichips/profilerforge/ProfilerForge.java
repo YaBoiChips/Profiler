@@ -6,11 +6,9 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.OptionsScreen;
-import net.minecraft.client.gui.screens.OptionsSubScreen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -70,10 +68,10 @@ public class ProfilerForge {
 
         int buttonX = (optionsScreen.width / Minecraft.getInstance().getWindow().getGuiScaledWidth());
         int buttonY = (optionsScreen.height / Minecraft.getInstance().getWindow().getGuiScaledHeight());
-
         // First Button: Load Settings from profile.json
-        Button loadSettingsButton = Button.builder(
-                Component.literal("↓"), // Button text
+        Button loadSettingsButton = new Button(
+                buttonX, buttonY, 20, 20,
+                new TextComponent("↓"),
                 button -> {
                     if (PROFILE_FILE.exists()) {
                         // Load settings from profile.json
@@ -81,8 +79,8 @@ public class ProfilerForge {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
                             Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
-                                    Component.literal("Settings Loaded"),
-                                    Component.literal("Your settings have been loaded from profiler.json.")
+                                    new TextComponent("Settings Loaded"),
+                                    new TextComponent("Your settings have been loaded from profiler.json.")
                             ));
                             System.out.println("Settings loaded from profile.json");
                         } catch (IOException e) {
@@ -90,56 +88,57 @@ public class ProfilerForge {
                         }
                     } else {
                         Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
-                                Component.literal("File Not Found"),
-                                Component.literal("profiler.json was not found on your computer, try saving first!")
+                                new TextComponent("File Not Found"),
+                                new TextComponent("profiler.json was not found on your computer, try saving first!")
                         ));
                     }
                     optionsScreen.onClose();
                 }
-        ).size(20, 20).pos(buttonX, buttonY).tooltip(Tooltip.create(Component.literal("Retrieve Minecraft Settings"))).build();
+        );
 
         // Second Button: Save Settings to profile.json
-        Button saveSettingsButton = Button.builder(
+        Button saveSettingsButton = new Button(
+                optionsScreen.width - 21, buttonY, 20, 20,
                 // Button height
-                Component.literal("↑"), // Button text
+                new TextComponent("↑"), // Button text
                 button -> {
                     // Save current settings to profile.json
                     SettingsProfile profile = new SettingsProfile(
-                            gameOptions.fov().get(),
-                            gameOptions.enableVsync().get(),
-                            gameOptions.guiScale().get(),
-                            gameOptions.gamma().get(),
-                            gameOptions.particles().get().getId(),
-                            gameOptions.framerateLimit().get(),
-                            gameOptions.bobView().get(),
-                            gameOptions.cloudStatus().get().getId(),
-                            gameOptions.entityShadows().get(),
-                            gameOptions.entityDistanceScaling().get(),
-                            gameOptions.fovEffectScale().get(),
-                            gameOptions.showAutosaveIndicator().get(),
-                            gameOptions.graphicsMode().get().getId(),
-                            gameOptions.renderDistance().get(),
-                            gameOptions.fullscreen().get(),
-                            gameOptions.sensitivity().get(),
-                            gameOptions.mouseWheelSensitivity().get(),
-                            gameOptions.touchscreen().get(),
-                            gameOptions.invertYMouse().get(),
-                            gameOptions.discreteMouseScroll().get(),
-                            gameOptions.rawMouseInput().get(),
-                            gameOptions.toggleCrouch().get(),
-                            gameOptions.toggleSprint().get(),
-                            gameOptions.autoJump().get(),
-                            gameOptions.getSoundSourceVolume(SoundSource.MASTER),
-                            gameOptions.getSoundSourceVolume(SoundSource.MUSIC),
-                            gameOptions.getSoundSourceVolume(SoundSource.RECORDS),
-                            gameOptions.getSoundSourceVolume(SoundSource.WEATHER),
-                            gameOptions.getSoundSourceVolume(SoundSource.BLOCKS),
-                            gameOptions.getSoundSourceVolume(SoundSource.HOSTILE),
-                            gameOptions.getSoundSourceVolume(SoundSource.NEUTRAL),
-                            gameOptions.getSoundSourceVolume(SoundSource.PLAYERS),
-                            gameOptions.getSoundSourceVolume(SoundSource.AMBIENT),
-                            gameOptions.getSoundSourceVolume(SoundSource.VOICE),
-                            gameOptions.showSubtitles().get(),
+                            (int) gameOptions.fov,
+                            gameOptions.enableVsync,
+                            gameOptions.guiScale,
+                            gameOptions.gamma,
+                            gameOptions.particles.getId(),
+                            gameOptions.framerateLimit,
+                            gameOptions.bobView,
+                            getCloudInt(gameOptions.renderClouds),
+                            gameOptions.entityShadows,
+                            gameOptions.entityDistanceScaling,
+                            gameOptions.fovEffectScale,
+                            gameOptions.showAutosaveIndicator,
+                            gameOptions.graphicsMode.getId(),
+                            gameOptions.renderDistance,
+                            gameOptions.fullscreen,
+                            gameOptions.sensitivity,
+                            gameOptions.mouseWheelSensitivity,
+                            gameOptions.touchscreen,
+                            gameOptions.invertYMouse,
+                            gameOptions.discreteMouseScroll,
+                            gameOptions.rawMouseInput,
+                            gameOptions.toggleCrouch,
+                            gameOptions.toggleSprint,
+                            gameOptions.autoJump,
+                            gameOptions.sourceVolumes.get(SoundSource.MASTER),
+                            gameOptions.sourceVolumes.get(SoundSource.MUSIC),
+                            gameOptions.sourceVolumes.get(SoundSource.RECORDS),
+                            gameOptions.sourceVolumes.get(SoundSource.WEATHER),
+                            gameOptions.sourceVolumes.get(SoundSource.BLOCKS),
+                            gameOptions.sourceVolumes.get(SoundSource.HOSTILE),
+                            gameOptions.sourceVolumes.get(SoundSource.NEUTRAL),
+                            gameOptions.sourceVolumes.get(SoundSource.PLAYERS),
+                            gameOptions.sourceVolumes.get(SoundSource.AMBIENT),
+                            gameOptions.sourceVolumes.get(SoundSource.VOICE),
+                            gameOptions.showSubtitles,
                             gameOptions.keyUp.getKey().getValue(),
                             gameOptions.keyLeft.getKey().getValue(),
                             gameOptions.keyDown.getKey().getValue(),
@@ -162,8 +161,8 @@ public class ProfilerForge {
                             gameOptions.keyAdvancements.getKey().getValue()
                     );
                     Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
-                            Component.literal("Settings Saved"),
-                            Component.literal("Your settings have been saved.")
+                            new TextComponent("Settings Saved"),
+                            new TextComponent("Your settings have been saved.")
                     ));
                     try (FileWriter writer = new FileWriter(PROFILE_FILE)) {
                         GSON.toJson(profile, writer);
@@ -174,8 +173,7 @@ public class ProfilerForge {
                     optionsScreen.onClose();
 
                 }
-        ).size(20, 20).pos(optionsScreen.width - 21, buttonY).tooltip(Tooltip.create(Component.literal("Set New Default Settings"))).build();
-
+        );
         // Add both buttons to the options screen
         optionsScreen.addRenderableWidget(loadSettingsButton);
         optionsScreen.addRenderableWidget(saveSettingsButton);
@@ -186,8 +184,8 @@ public class ProfilerForge {
 
         Options gameOptions = Minecraft.getInstance().options;
         //other settings
-        gameOptions.fov().set(profile.fov);
-        gameOptions.showSubtitles().set(profile.subtitles);
+        gameOptions.fov = (profile.fov);
+        gameOptions.showSubtitles = (profile.subtitles);
 
         //controls
 // Assuming profile has integer fields for key bindings
@@ -210,93 +208,113 @@ public class ProfilerForge {
         gameOptions.keyAdvancements.setKey(InputConstants.getKey(profile.keyAdvancements, profile.keyAdvancements));
 
 
-        gameOptions.sensitivity().set(profile.mouseSensitivity);
-        gameOptions.mouseWheelSensitivity().set(profile.scrollSensitivity);
-        gameOptions.touchscreen().set(profile.touchscreen);
-        gameOptions.invertYMouse().set(profile.invertMouse);
-        gameOptions.discreteMouseScroll().set(profile.discreteMouse);
-        gameOptions.rawMouseInput().set(profile.rawMouseInput);
+        gameOptions.sensitivity = (profile.mouseSensitivity);
+        gameOptions.mouseWheelSensitivity = (profile.scrollSensitivity);
+        gameOptions.touchscreen = (profile.touchscreen);
+        gameOptions.invertYMouse = (profile.invertMouse);
+        gameOptions.discreteMouseScroll = (profile.discreteMouse);
+        gameOptions.rawMouseInput = (profile.rawMouseInput);
 
-        gameOptions.toggleCrouch().set(profile.toggleCrouch);
-        gameOptions.toggleSprint().set(profile.toggleSprint);
-        gameOptions.autoJump().set(profile.autoJump);
+        gameOptions.toggleCrouch = (profile.toggleCrouch);
+        gameOptions.toggleSprint = (profile.toggleSprint);
+        gameOptions.autoJump = (profile.autoJump);
 
 
         //volume
-        gameOptions.soundSourceVolumes.get(SoundSource.MASTER).set(profile.masterVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.MUSIC).set(profile.musicVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.RECORDS).set(profile.recordVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.WEATHER).set(profile.weatherVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.BLOCKS).set(profile.blockVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.HOSTILE).set(profile.hostileVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.NEUTRAL).set(profile.neutralVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.PLAYERS).set(profile.playerVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.AMBIENT).set(profile.ambientVolume);
-        gameOptions.soundSourceVolumes.get(SoundSource.VOICE).set(profile.voiceVolume);
+        gameOptions.sourceVolumes.put(SoundSource.MASTER, (float) profile.masterVolume);
+        gameOptions.sourceVolumes.put(SoundSource.MUSIC, (float) profile.musicVolume);
+        gameOptions.sourceVolumes.put(SoundSource.RECORDS, (float) profile.recordVolume);
+        gameOptions.sourceVolumes.put(SoundSource.WEATHER, (float) profile.weatherVolume);
+        gameOptions.sourceVolumes.put(SoundSource.BLOCKS, (float) profile.blockVolume);
+        gameOptions.sourceVolumes.put(SoundSource.HOSTILE, (float) profile.hostileVolume);
+        gameOptions.sourceVolumes.put(SoundSource.NEUTRAL, (float) profile.neutralVolume);
+        gameOptions.sourceVolumes.put(SoundSource.PLAYERS, (float) profile.playerVolume);
+        gameOptions.sourceVolumes.put(SoundSource.AMBIENT, (float) profile.ambientVolume);
+        gameOptions.sourceVolumes.put(SoundSource.VOICE, (float) profile.voiceVolume);
 
         //video settings
-        gameOptions.graphicsMode().set(GraphicsStatus.byId(profile.graphicsMode));
-        gameOptions.enableVsync().set(profile.vsync);
-        gameOptions.guiScale().set(profile.guiScale);
-        gameOptions.renderDistance().set(profile.viewDistance);
-        gameOptions.fullscreen().set(profile.fullscreen);
-        gameOptions.gamma().set(profile.brightness);
-        gameOptions.particles().set(ParticleStatus.byId(profile.particles));
-        gameOptions.framerateLimit().set(profile.framerateLimit);
-        gameOptions.bobView().set(profile.bobView);
-        gameOptions.cloudStatus().set(getCloudByID(profile.cloudStatus));
-        gameOptions.entityShadows().set(profile.entityShadows);
-        gameOptions.entityDistanceScaling().set(profile.entityDistance);
-        gameOptions.fovEffectScale().set(profile.fovEffect);
-        gameOptions.showAutosaveIndicator().set(profile.autosave);
+        gameOptions.graphicsMode = (GraphicsStatus.byId(profile.graphicsMode));
+        gameOptions.enableVsync = (profile.vsync);
+        gameOptions.guiScale = (profile.guiScale);
+        gameOptions.renderDistance = (profile.viewDistance);
+        gameOptions.fullscreen = (profile.fullscreen);
+        gameOptions.gamma = (profile.brightness);
+        gameOptions.particles = (ParticleStatus.byId(profile.particles));
+        gameOptions.framerateLimit = (profile.framerateLimit);
+        gameOptions.bobView = (profile.bobView);
+        gameOptions.renderClouds = (getCloudByID(profile.cloudStatus));
+        gameOptions.entityShadows = (profile.entityShadows);
+        gameOptions.entityDistanceScaling = (float) profile.entityDistance;
+        gameOptions.fovEffectScale = (float) profile.fovEffect;
+        gameOptions.showAutosaveIndicator = (profile.autosave);
+        Minecraft.getInstance().resizeDisplay();
     }
 
     public static CloudStatus getCloudByID(int id) {
-        for (CloudStatus e : CloudStatus.values()) {
-            if (e.getId() == id) {
-                return e;
+        switch (id) {
+            case 0 -> {
+                return CloudStatus.OFF;
+            }
+            case 1 -> {
+                return CloudStatus.FAST;
+            }
+            default -> {
+                return CloudStatus.FANCY;
             }
         }
-        return CloudStatus.FANCY;
+    }
+
+    public int getCloudInt(CloudStatus status) {
+        switch (status) {
+            case OFF -> {
+                return 0;
+            }
+            case FAST -> {
+                return 1;
+            }
+            default -> {
+                return 2;
+            }
+        }
     }
 
     // Inner class to represent the player's settings in JSON
-    public static class SettingsProfile {
-        public boolean subtitles;
-        public double musicVolume;
-        public double recordVolume;
-        public double weatherVolume;
-        public double blockVolume;
-        public double hostileVolume;
-        public double neutralVolume;
-        public double playerVolume;
-        public double ambientVolume;
-        public double voiceVolume;
-        public boolean toggleCrouch;
-        public boolean toggleSprint;
-        public boolean autoJump;
-        public boolean touchscreen;
-        public boolean invertMouse;
-        public boolean discreteMouse;
-        public boolean rawMouseInput;
-        public double scrollSensitivity;
-        public double mouseSensitivity;
-        public boolean bobView;
-        public int cloudStatus;
-        public boolean entityShadows;
-        public double entityDistance;
-        public double fovEffect;
-        public boolean autosave;
-        public int framerateLimit;
-        public int particles;
-        public double brightness;
-        public int fov;
-        public boolean vsync;
-        public int guiScale;
-        public double masterVolume;
-        public int graphicsMode;
-        public int viewDistance;
-        public boolean fullscreen;
+    private static class SettingsProfile {
+        boolean subtitles;
+        double musicVolume;
+        double recordVolume;
+        double weatherVolume;
+        double blockVolume;
+        double hostileVolume;
+        double neutralVolume;
+        double playerVolume;
+        double ambientVolume;
+        double voiceVolume;
+        boolean toggleCrouch;
+        boolean toggleSprint;
+        boolean autoJump;
+        boolean touchscreen;
+        boolean invertMouse;
+        boolean discreteMouse;
+        boolean rawMouseInput;
+        double scrollSensitivity;
+        double mouseSensitivity;
+        boolean bobView;
+        int cloudStatus;
+        boolean entityShadows;
+        double entityDistance;
+        double fovEffect;
+        boolean autosave;
+        int framerateLimit;
+        int particles;
+        double brightness;
+        int fov;
+        boolean vsync;
+        int guiScale;
+        double masterVolume;
+        int graphicsMode;
+        int viewDistance;
+        boolean fullscreen;
         public int keyUp;
         public int keyLeft;
         public int keyDown;
