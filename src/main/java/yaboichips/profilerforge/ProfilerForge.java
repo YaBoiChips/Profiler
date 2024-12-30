@@ -6,6 +6,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.OptionsScreen;
 import net.minecraft.client.gui.screens.OptionsSubScreen;
@@ -71,8 +72,7 @@ public class ProfilerForge {
         int buttonY = (optionsScreen.height / Minecraft.getInstance().getWindow().getGuiScaledHeight());
 
         // First Button: Load Settings from profile.json
-        Button loadSettingsButton = new Button(
-                buttonX, buttonY, 20, 20,
+        Button loadSettingsButton = Button.builder(
                 Component.literal("↓"), // Button text
                 button -> {
                     if (PROFILE_FILE.exists()) {
@@ -96,11 +96,10 @@ public class ProfilerForge {
                     }
                     optionsScreen.onClose();
                 }
-        );
+        ).size(20, 20).pos(buttonX, buttonY).tooltip(Tooltip.create(Component.literal("Retrieve Minecraft Settings"))).build();
 
         // Second Button: Save Settings to profile.json
-        Button saveSettingsButton = new Button(
-                optionsScreen.width - 21, buttonY, 20, 20,
+        Button saveSettingsButton = Button.builder(
                 // Button height
                 Component.literal("↑"), // Button text
                 button -> {
@@ -175,7 +174,7 @@ public class ProfilerForge {
                     optionsScreen.onClose();
 
                 }
-        );
+        ).size(20, 20).pos(optionsScreen.width - 21, buttonY).tooltip(Tooltip.create(Component.literal("Set New Default Settings"))).build();
 
         // Add both buttons to the options screen
         optionsScreen.addRenderableWidget(loadSettingsButton);
@@ -224,16 +223,16 @@ public class ProfilerForge {
 
 
         //volume
-        gameOptions.setSoundCategoryVolume(SoundSource.MASTER, (float) profile.masterVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.MUSIC, (float) profile.musicVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.RECORDS, (float) profile.recordVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.WEATHER, (float) profile.weatherVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.BLOCKS, (float) profile.blockVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.HOSTILE, (float) profile.hostileVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.NEUTRAL, (float) profile.neutralVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.PLAYERS, (float) profile.playerVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.AMBIENT, (float) profile.ambientVolume);
-        gameOptions.setSoundCategoryVolume(SoundSource.VOICE, (float) profile.voiceVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.MASTER).set(profile.masterVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.MUSIC).set(profile.musicVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.RECORDS).set(profile.recordVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.WEATHER).set(profile.weatherVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.BLOCKS).set(profile.blockVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.HOSTILE).set(profile.hostileVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.NEUTRAL).set(profile.neutralVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.PLAYERS).set(profile.playerVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.AMBIENT).set(profile.ambientVolume);
+        gameOptions.soundSourceVolumes.get(SoundSource.VOICE).set(profile.voiceVolume);
 
         //video settings
         gameOptions.graphicsMode().set(GraphicsStatus.byId(profile.graphicsMode));
