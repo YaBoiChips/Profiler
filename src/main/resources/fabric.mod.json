@@ -12,7 +12,7 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "yaboichips.profiler.client.ProfilerClient"
+      "yaboichips.profiler.ProfilerClient"
     ],
     "main": [
       "yaboichips.profiler.Profiler"
@@ -26,8 +26,8 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
+    "fabricloader": ">=0.16.9",
     "fabric": "*",
-    "minecraft": ">=${minecraft_version}"
+    "minecraft": "1.16.5"
   }
 }
