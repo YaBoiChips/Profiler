@@ -7,8 +7,9 @@ import net.minecraft.client.*;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.gui.screens.OptionsScreen;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.sounds.SoundSource;
 import org.spongepowered.include.com.google.gson.Gson;
 import org.spongepowered.include.com.google.gson.GsonBuilder;
@@ -50,7 +51,7 @@ public class ProfilerClient implements ClientModInitializer {
                         try (FileReader reader = new FileReader(PROFILE_FILE)) {
                             SettingsProfile profile = GSON.fromJson(reader, SettingsProfile.class);
                             applySettings(profile);
-                            Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
+                            Minecraft.getInstance().getToastManager().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
                                     Component.literal("Settings Loaded"),
                                     Component.literal("Your settings have been loaded from profiler.json.")
                             ));
@@ -59,7 +60,7 @@ public class ProfilerClient implements ClientModInitializer {
                             e.printStackTrace();
                         }
                     } else {
-                        Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
+                        Minecraft.getInstance().getToastManager().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
                                 Component.literal("File Not Found"),
                                 Component.literal("profiler.json was not found on your computer, try saving first!")
                         ));
@@ -94,7 +95,7 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.sensitivity().get(),
                             gameOptions.mouseWheelSensitivity().get(),
                             gameOptions.touchscreen().get(),
-                            gameOptions.invertYMouse().get(),
+                            gameOptions.invertMouseY().get(),
                             gameOptions.discreteMouseScroll().get(),
                             gameOptions.rawMouseInput().get(),
                             gameOptions.toggleCrouch().get(),
@@ -133,7 +134,7 @@ public class ProfilerClient implements ClientModInitializer {
                             gameOptions.keySmoothCamera.key.getValue(),
                             gameOptions.keyAdvancements.key.getValue()
                     );
-                    Minecraft.getInstance().getToasts().addToast(new SystemToast(SystemToast.SystemToastIds.WORLD_BACKUP,
+                    Minecraft.getInstance().getToastManager().addToast(new SystemToast(SystemToast.SystemToastId.WORLD_BACKUP,
                             Component.literal("Settings Saved"),
                             Component.literal("Your settings have been saved.")
                     ));
@@ -163,29 +164,29 @@ public class ProfilerClient implements ClientModInitializer {
 
         //controls
 // Assuming profile has integer fields for key bindings
-        gameOptions.keyUp.setKey(InputConstants.getKey(profile.keyUp, profile.keyUp));
-        gameOptions.keyLeft.setKey(InputConstants.getKey(profile.keyLeft, profile.keyLeft));
-        gameOptions.keyDown.setKey(InputConstants.getKey(profile.keyDown, profile.keyDown));
-        gameOptions.keyRight.setKey(InputConstants.getKey(profile.keyRight, profile.keyRight));
-        gameOptions.keyJump.setKey(InputConstants.getKey(profile.keyJump, profile.keyJump));
-        gameOptions.keyShift.setKey(InputConstants.getKey(profile.keySneak, profile.keySneak));
-        gameOptions.keySprint.setKey(InputConstants.getKey(profile.keySprint, profile.keySprint));
-        gameOptions.keyInventory.setKey(InputConstants.getKey(profile.keyInventory, profile.keyInventory));
-        gameOptions.keySwapOffhand.setKey(InputConstants.getKey(profile.keySwapHands, profile.keySwapHands));
-        gameOptions.keyDrop.setKey(InputConstants.getKey(profile.keyDrop, profile.keyDrop));
-        gameOptions.keyChat.setKey(InputConstants.getKey(profile.keyChat, profile.keyChat));
-        gameOptions.keyPlayerList.setKey(InputConstants.getKey(profile.keyPlayerList, profile.keyPlayerList));
-        gameOptions.keyCommand.setKey(InputConstants.getKey(profile.keyCommand, profile.keyCommand));
-        gameOptions.keyScreenshot.setKey(InputConstants.getKey(profile.keyScreenshot, profile.keyScreenshot));
-        gameOptions.keyTogglePerspective.setKey(InputConstants.getKey(profile.keyTogglePerspective, profile.keyTogglePerspective));
-        gameOptions.keySmoothCamera.setKey(InputConstants.getKey(profile.keySmoothCamera, profile.keySmoothCamera));
-        gameOptions.keyAdvancements.setKey(InputConstants.getKey(profile.keyAdvancements, profile.keyAdvancements));
+        gameOptions.keyUp.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyUp));
+        gameOptions.keyLeft.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyLeft));
+        gameOptions.keyDown.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyDown));
+        gameOptions.keyRight.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyRight));
+        gameOptions.keyJump.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyJump));
+        gameOptions.keyShift.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keySneak));
+        gameOptions.keySprint.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keySprint));
+        gameOptions.keyInventory.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyInventory));
+        gameOptions.keySwapOffhand.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keySwapHands));
+        gameOptions.keyDrop.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyDrop));
+        gameOptions.keyChat.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyChat));
+        gameOptions.keyPlayerList.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyPlayerList));
+        gameOptions.keyCommand.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyCommand));
+        gameOptions.keyScreenshot.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyScreenshot));
+        gameOptions.keyTogglePerspective.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyTogglePerspective));
+        gameOptions.keySmoothCamera.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keySmoothCamera));
+        gameOptions.keyAdvancements.setKey(InputConstants.Type.KEYSYM.getOrCreate(profile.keyAdvancements));
 
 
         gameOptions.sensitivity().set(profile.mouseSensitivity);
         gameOptions.mouseWheelSensitivity().set(profile.scrollSensitivity);
         gameOptions.touchscreen().set(profile.touchscreen);
-        gameOptions.invertYMouse().set(profile.invertMouse);
+        gameOptions.invertMouseY().set(profile.invertMouse);
         gameOptions.discreteMouseScroll().set(profile.discreteMouse);
         gameOptions.rawMouseInput().set(profile.rawMouseInput);
 
